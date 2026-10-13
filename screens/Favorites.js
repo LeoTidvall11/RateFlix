@@ -1,3 +1,5 @@
-export default function Homescreen() {
-  return <View></View>;
+import ScreenBackground from 'components/ScreenBackground';
+
+export default function Favorites() {
+  return <ScreenBackground></ScreenBackground>;
 }
