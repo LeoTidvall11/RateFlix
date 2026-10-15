@@ -22,4 +22,5 @@ export function useFetch(fetcher, deps = []) {
       cancelled = true;
     };
   }, deps);
+  return { data, loading, error };
 }
