@@ -1,5 +1,5 @@
 import { Pressable, Text, View, useWindowDimensions } from 'react-native';
-import { LiquidGlassView, isLiquidGlassSupported } from '@callstack/liquid-glass';
+import { LiquidGlassView, isLiquidGlassSupported } from '../liquidGlass';
 import { BlurView } from 'expo-blur';
 
 export default function Categories({ label, active = false, onPress }) {

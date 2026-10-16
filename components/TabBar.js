@@ -1,5 +1,5 @@
 import { Pressable, View } from 'react-native';
-import { LiquidGlassView, isLiquidGlassSupported } from '@callstack/liquid-glass';
+import { LiquidGlassView, isLiquidGlassSupported } from './liquidGlass';
 import { BlurView } from 'expo-blur';
 
 export function TabBar({ state, descriptors, navigation }) {
