@@ -1,4 +1,4 @@
-import { Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { LiquidGlassView, isLiquidGlassSupported } from '../liquidGlass';
 import { BlurView } from 'expo-blur';
 

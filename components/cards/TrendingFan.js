@@ -271,7 +271,7 @@ export default function TrendingFan({ movies, onPressMovie }) {
           ))}
         </View>
       </GestureDetector>
-      <View className="mt-10 flex-row items-center">
+      <View className="mt-20 flex-row items-center">
         {topFive.map((item, index) => (
           <DotItem key={`dot-${item.id}`} index={index} activeIndex={activeIndex} />
         ))}
