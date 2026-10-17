@@ -4,12 +4,13 @@ import CategoryTitle from 'components/text/CategoryTitle';
 import { View, FlatList } from 'react-native';
 
 export default function MovieCarousel({ title, movies, onPressMovie }) {
+  const limitedSelection = movies?.slice(0, 7) || [];
   return (
     <View className="mx-2  p-4 ">
       <CategoryTitle title={title} />
       <FlatList
         horizontal
-        data={movies}
+        data={limitedSelection}
         keyExtractor={(item) => item.id.toString()}
         showHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 8 }}
