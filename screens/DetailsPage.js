@@ -20,6 +20,7 @@ import { BlurView } from 'expo-blur';
 import { ChevronLeft, Star, Calendar, Clock, Bookmark } from 'lucide-react-native';
 import { useFetch } from 'hooks/useFetch';
 import { getMovieDetails, imageUrl } from 'services/externalApi';
+import { SkipBack } from 'lucide-react-native';
 import ScreenBackground from 'components/ScreenBackground';
 import { LiquidGlassView, isLiquidGlassSupported } from 'components/liquidGlass';
 import colors from 'theme/colors';
@@ -63,6 +64,7 @@ function MovieInfo({
     </View>
   );
 }
+import LibraryActions from 'components/buttons/LibraryActions';
 
 export default function MovieDetailScreen({ route, navigation }) {
   const { movieId } = route.params;
