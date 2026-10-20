@@ -5,13 +5,13 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import Homescreen from 'screens/HomeScreen';
 import Watchlist from 'screens/Watchlist';
-import Favorites from 'screens/Favorites';
 import { TabBar } from 'components/TabBar';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Film, StarCheck, BookHeart, CircleUser } from 'lucide-react-native';
+import { Film, StarCheck, BookHeart, CircleUser, SearchIcon } from 'lucide-react-native';
 import DetailsPage from 'screens/DetailsPage';
 import ProfilePage from 'screens/ProfilePage';
+import Search from 'screens/Search';
 
 const tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -39,10 +39,10 @@ function TabNavigator() {
       />
 
       <tab.Screen
-        name="favorites"
-        component={Favorites}
+        name="search"
+        component={Search}
         options={{
-          tabBarIcon: ({ color, size }) => <BookHeart size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <SearchIcon size={size} color={color} />,
         }}
       />
 

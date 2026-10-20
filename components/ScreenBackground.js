@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const BG = require('../assets/bg_rateflix.jpg');
 const BG_RATIO = 5592 / 1290; // bildens höjd / bredd
-const PARALLAX = 0.1; // hur mycket bakgrunden följer med scrollen (1 = lika snabbt som innehållet)
+const PARALLAX = 0.4; // hur mycket bakgrunden följer med scrollen (1 = lika snabbt som innehållet)
 
 export default function ScreenBackground({ children, contentContainerStyle, ...scrollProps }) {
   const { width, height } = useWindowDimensions();
