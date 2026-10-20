@@ -2,7 +2,7 @@
 // själv från TMDB (getMovieDetails tar med credits så skådespelarna kommer i samma anrop).
 // Sidan är uppdelad i sektioner uppifrån och ner: hero-bild, poster + titel, chips,
 // knappar, handling och skådespelare. Allt ligger i ScreenBackground som redan är en
-// ScrollView, så här inne får det INTE finnas en till vertikal ScrollView, då slutar
+// ScrollView. Så här inne får det INTE finnas en till vertikal ScrollView, då slutar
 // parallax-bakgrunden fungera.
 
 import React, { useCallback, useState } from 'react';
@@ -17,11 +17,11 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { ChevronLeft, Star, Calendar, Clock, Bookmark } from 'lucide-react-native';
+import { ChevronLeft, Star, Calendar, Clock } from 'lucide-react-native';
 import { useFetch } from 'hooks/useFetch';
 import { getMovieDetails, imageUrl } from 'services/externalApi';
-import { SkipBack } from 'lucide-react-native';
 import ScreenBackground from 'components/ScreenBackground';
+import LibraryActions from 'components/buttons/LibraryActions';
 import { LiquidGlassView, isLiquidGlassSupported } from 'components/liquidGlass';
 import colors from 'theme/colors';
 
@@ -64,7 +64,6 @@ function MovieInfo({
     </View>
   );
 }
-import LibraryActions from 'components/buttons/LibraryActions';
 
 export default function MovieDetailScreen({ route, navigation }) {
   const { movieId } = route.params;
@@ -171,16 +170,7 @@ export default function MovieDetailScreen({ route, navigation }) {
       ) : null}
 
       <View className="mt-6 gap-3 px-6">
-        <Pressable
-          accessibilityRole="button"
-          className="flex-row items-center justify-center gap-2 rounded-2xl bg-blood-700 p-4
-          ">
-          <Bookmark size={20} color={colors.text.onRed} />
-          <Text className={'font-bold uppercase tracking-wider color-text-onRed'}>
-            {' '}
-            Lägg till i wishlist{' '}
-          </Text>
-        </Pressable>
+        <LibraryActions movie={movie} />
 
         <GlassCard>
           <View className="flex-row items-center justify-between p-4">
