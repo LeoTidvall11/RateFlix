@@ -36,7 +36,7 @@ const colors = {
     onRed: '#FFFFFF',
   },
 
-  // Glassmorphism-ytor (rgba, används som bg-glass / border-glass-border …)
+  // Glassmorphism-ytor (rgba, används som bg-glass / border-glass-border)
   glass: {
     DEFAULT: 'rgba(255,255,255,0.08)', // kortyta
     strong: 'rgba(255,255,255,0.14)', // upphöjd/aktiv yta
@@ -48,4 +48,4 @@ const colors = {
   },
 };
 
-module.exports = colors;
+export default colors;

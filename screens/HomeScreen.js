@@ -13,7 +13,7 @@ import {
 } from 'services/externalApi';
 import TrendingFan from 'components/cards/TrendingFan';
 import MovieCarousel from 'components/Carousel/MovieCarousel';
-export default function HomeScreen() {
+export default function HomeScreen({ navigation, route }) {
   const fetcher = useCallback(() => getTrendingMovies('week'), []);
   const { data, loading, error } = useFetch(fetcher);
 
@@ -21,6 +21,7 @@ export default function HomeScreen() {
   const { data: topRated } = useFetch(getTopRatedMovies);
   const { data: upcoming } = useFetch(getUpcomingMovies);
   const { data: nowPlaying } = useFetch(getNowPlayingMovies);
+  const openMovie = (movie) => navigation.navigate('movieDetail', { movieId: movie.id });
 
   return (
     <ScreenBackground>
@@ -38,10 +39,14 @@ export default function HomeScreen() {
 
       <View className="mb-24">{data && <TrendingFan movies={data.results} />}</View>
       <View>
-        <MovieCarousel title={'Popular'} movies={popular?.results} />
-        <MovieCarousel title={'Top rated'} movies={topRated?.results} />
-        <MovieCarousel title={'Upcoming'} movies={upcoming?.results} />
-        <MovieCarousel title={'In theatres'} movies={nowPlaying?.results} />
+        <MovieCarousel title={'Popular'} movies={popular?.results} onPressMovie={openMovie} />
+        <MovieCarousel title={'Top rated'} movies={topRated?.results} onPressMovie={openMovie} />
+        <MovieCarousel title={'Upcoming'} movies={upcoming?.results} onPressMovie={openMovie} />
+        <MovieCarousel
+          title={'In theatres'}
+          movies={nowPlaying?.results}
+          onPressMovie={openMovie}
+        />
       </View>
     </ScreenBackground>
   );
