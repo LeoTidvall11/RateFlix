@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { View, Text, Image, Pressable, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { Bookmark, Heart, CircleCheck } from 'lucide-react-native';
 import ScreenBackground from 'components/ScreenBackground';
 import { useLibrary } from 'context/LibraryContext';
-import { imageUrl } from 'services/externalApi';
+import PosterTile from 'components/cards/PosterTile';
 import colors from '../theme/colors';
 
 const TABS = [
@@ -67,55 +67,6 @@ function SegmentedControl({ activeKey, counts, onChange }) {
   );
 }
 
-function PosterTile({ entry, width, activeKey, onPress }) {
-  const { movie } = entry;
-  // Visa status från de andra listorna, inte den man redan tittar på
-  const showFavorite = entry.isFavorite && activeKey !== 'favorites';
-  const showWatched = entry.watched && activeKey !== 'watched';
-  const height = width * 1.5;
-  const year = movie.release_date?.split('-')[0];
-
-  return (
-    <Pressable onPress={onPress} style={{ width }} className="active:opacity-80">
-      <View
-        style={{ width, height }}
-        className="overflow-hidden rounded-xl bg-ink-600 shadow-lg shadow-blood-600">
-        {movie.poster_path ? (
-          <Image
-            source={{ uri: imageUrl(movie.poster_path, 'w342') }}
-            className="h-full w-full"
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="h-full w-full items-center justify-center p-2">
-            <Text className="text-center text-xs text-text-secondary">{movie.title}</Text>
-          </View>
-        )}
-
-        {showFavorite || showWatched ? (
-          <View className="absolute right-1.5 top-1.5 flex-row gap-1">
-            {showFavorite ? (
-              <View className="rounded-full p-1" style={{ backgroundColor: colors.glass.dark }}>
-                <Heart size={12} color={colors.blood[500]} fill={colors.blood[500]} />
-              </View>
-            ) : null}
-            {showWatched ? (
-              <View className="rounded-full p-1" style={{ backgroundColor: colors.glass.dark }}>
-                <CircleCheck size={12} color={colors.mint} />
-              </View>
-            ) : null}
-          </View>
-        ) : null}
-      </View>
-
-      <Text numberOfLines={1} className="mt-1.5 text-xs font-semibold text-text-primary">
-        {movie.title}
-      </Text>
-      {year ? <Text className="text-[11px] text-text-muted">{year}</Text> : null}
-    </Pressable>
-  );
-}
-
 function EmptyState({ tab, onExplore }) {
   const { Icon } = tab;
   return (
@@ -129,7 +80,7 @@ function EmptyState({ tab, onExplore }) {
       </Text>
       <Pressable
         onPress={onExplore}
-        className="mt-6 rounded-full bg-blood-700 px-6 py-3 active:opacity-80">
+        className="mt-6 rounded-full bg-blood-700 px-5 py-3 active:opacity-80">
         <Text className="font-semibold text-text-onRed">Utforska filmer</Text>
       </Pressable>
     </View>
@@ -164,9 +115,10 @@ export default function Watchlist({ navigation }) {
             {items.map((entry) => (
               <PosterTile
                 key={entry.movie.id}
-                entry={entry}
+                movie={entry.movie}
                 width={tileWidth}
-                activeKey={activeKey}
+                showFavorite={entry.isFavorite && activeKey !== 'favorites'}
+                showWatched={entry.watched && activeKey !== 'watched'}
                 onPress={() => openMovie(entry.movie.id)}
               />
             ))}
