@@ -123,7 +123,7 @@ export default function MovieDetailScreen({ route, navigation }) {
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
           accessibilityLabel="Tillbaka"
-          className="absolute left-4 mt-10 h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-glass-dark">
+          className="absolute left-4 mt-16 h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-glass-dark">
           <ChevronLeft color={colors.text.primary} size={24} />
         </Pressable>
       </View>
