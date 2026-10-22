@@ -3,7 +3,10 @@ import { imageUrl } from 'services/externalApi';
 
 export default function MovieCard({ item, onPress }) {
   return (
-    <Pressable onPress={() => onPress && onPress(item)} activeOpacity={0.8} className="mr-4 w-36">
+    <Pressable
+      onPress={() => onPress && onPress(item)}
+      style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+      className="mr-4 w-36">
       <View className="h-52 w-36 overflow-hidden rounded-xl bg-ink-600 shadow-lg shadow-blood-600">
         {item.poster_path ? (
           <Image

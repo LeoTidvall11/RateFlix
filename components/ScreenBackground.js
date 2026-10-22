@@ -77,7 +77,7 @@ export default function ScreenBackground({
           {...sharedProps}
           {...scrollProps}
           {...list}
-          ListHeaderComponent={children}
+          ListHeaderComponent={<>{children}</>}
         />
       ) : (
         <Animated.ScrollView {...sharedProps} {...scrollProps}>

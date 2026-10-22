@@ -1,5 +1,6 @@
 import PosterTile from 'components/cards/PosterTile';
 import ScreenBackground from 'components/ScreenBackground';
+import MovieCarousel from 'components/Carousel/MovieCarousel';
 import { SearchIcon, X } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -10,7 +11,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { searchMovies } from 'services/externalApi';
+import { getGenres, getMoviesByGenre, searchMovies } from 'services/externalApi';
 import colors from '../theme/colors';
 
 const COLUMNS = 3;
@@ -25,12 +26,46 @@ export default function Search({ navigation }) {
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const { width } = useWindowDimensions();
 
+  const [genreSections, setGenreSections] = useState([]);
+  const [loadingGenres, setLoadingGenres] = useState(true);
+
+  const { width } = useWindowDimensions();
   const latestQuery = useRef('');
   const isFetching = useRef(false);
 
   const tileWidth = (width - SIDE_PADDING * 2 - GAP * (COLUMNS - 1)) / COLUMNS;
+
+  useEffect(() => {
+    const loadGenreContent = async () => {
+      try {
+        setLoadingGenres(true);
+        const { genres } = await getGenres();
+
+        // TMDB-ID Äventyr 12, fantasy 14, animerat 16,  Action 28, Komedi 35, kriminalare 80, Sci-Fi 878
+        const featuredIds = [12, 14, 16, 27, 28, 35, 80, 878];
+        const selectedGenres = genres.filter((g) => featuredIds.includes(g.id));
+
+        const requests = selectedGenres.map(async (genre) => {
+          const data = await getMoviesByGenre(genre.id);
+          return {
+            id: genre.id,
+            title: genre.name,
+            movies: data.results || [],
+          };
+        });
+
+        const sections = await Promise.all(requests);
+        setGenreSections(sections);
+      } catch (err) {
+        console.error('Fel vid hämtning av genreinnehåll:', err);
+      } finally {
+        setLoadingGenres(false);
+      }
+    };
+
+    loadGenreContent();
+  }, []);
 
   const fetchPage = async (q, pageToLoad) => {
     isFetching.current = true;
@@ -41,7 +76,6 @@ export default function Search({ navigation }) {
       const newResults = data.results || [];
       setResults((prev) => {
         if (pageToLoad === 1) return newResults;
-        // TMDB kan returnera samma film på flera sidor, vilket ger dubbla keys
         const seen = new Set(prev.map((m) => m.id));
         return [...prev, ...newResults.filter((m) => !seen.has(m.id))];
       });
@@ -58,7 +92,6 @@ export default function Search({ navigation }) {
     }
   };
 
-  // Debounce ny sökning (sida 1) startar 400 ms efter att användaren slutat skriva
   useEffect(() => {
     const timer = setTimeout(() => {
       const q = query.trim();
@@ -141,6 +174,24 @@ export default function Search({ navigation }) {
           ) : null}
         </View>
       </View>
+
+      {!debouncedQuery && (
+        <View className="mt-2 gap-6 pb-6">
+          {loadingGenres ? (
+            <ActivityIndicator color={colors.blood[600]} size="small" className="my-4" />
+          ) : (
+            genreSections.map((section) => (
+              <View key={section.id}>
+                <MovieCarousel
+                  movies={section.movies}
+                  title={section.title}
+                  onPressMovie={handleMoviePress}
+                />
+              </View>
+            ))
+          )}
+        </View>
+      )}
     </ScreenBackground>
   );
 }
