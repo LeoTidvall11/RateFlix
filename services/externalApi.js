@@ -36,3 +36,5 @@ export const getMovieDetails = (id) =>
 export const getGenres = () => request('/genre/movie/list');
 export const getMoviesByGenre = (genreId, page = 1) =>
   request('/discover/movie', { with_genres: genreId, page, sort_by: 'popularity.desc' });
+
+export const searchMovies = (query, page = 1) => request('/search/movie', { query, page });
