@@ -6,7 +6,7 @@ import { libraryStorage } from 'services/libraryStorage';
 
 const EMPTY_STATUS = { inWatchlist: false, isFavorite: false, watched: false };
 
-// Sparar bara det vi behöver för att visa kort/statistik, inte hela TMDB-svaret
+// Sparar bara det vi behöver för att visa kort/statistik inte hela TMDB-svaret
 function snapshot(movie) {
   const fields = {
     id: movie.id,
@@ -54,7 +54,7 @@ export function LibraryProvider({ children }) {
       };
 
       const { [movie.id]: _removed, ...rest } = prev;
-      // Ingen flagga kvar → ta bort filmen helt
+      // Ingen flagga kvar  ta bort filmen helt
       if (!next.inWatchlist && !next.isFavorite && !next.watched) return rest;
       return { ...rest, [movie.id]: next };
     });

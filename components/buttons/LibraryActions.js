@@ -3,6 +3,8 @@ import * as Haptics from 'expo-haptics';
 import { Bookmark, Heart, CircleCheck } from 'lucide-react-native';
 import { useLibrary } from 'context/LibraryContext';
 import colors from '../../theme/colors';
+import { useAuth } from 'context/authContext';
+import { useNavigation } from '@react-navigation/native';
 
 function ActionButton({ label, Icon, active, activeColor, fillWhenActive = true, onPress }) {
   const handlePress = () => {
@@ -39,6 +41,17 @@ export default function LibraryActions({ movie }) {
   const { getStatus, toggleWatchlist, toggleFavorite, toggleWatched } = useLibrary();
   const { inWatchlist, isFavorite, watched } = getStatus(movie.id);
 
+  const { user } = useAuth();
+  const navigation = useNavigation();
+
+  const requireAuth = (action) => {
+    if (!user) {
+      navigation.navigate('MainTabs', { screen: 'profile' });
+      return;
+    }
+    action();
+  };
+
   return (
     <View className="flex-row gap-2">
       <ActionButton
@@ -46,14 +59,14 @@ export default function LibraryActions({ movie }) {
         Icon={Bookmark}
         active={inWatchlist}
         activeColor={colors.gold}
-        onPress={() => toggleWatchlist(movie)}
+        onPress={() => requireAuth(() => toggleWatchlist(movie))}
       />
       <ActionButton
         label="Favorit"
         Icon={Heart}
         active={isFavorite}
         activeColor={colors.blood[500]}
-        onPress={() => toggleFavorite(movie)}
+        onPress={() => requireAuth(() => toggleFavorite(movie))}
       />
       <ActionButton
         label="Sett"
@@ -61,7 +74,7 @@ export default function LibraryActions({ movie }) {
         active={watched}
         activeColor={colors.mint}
         fillWhenActive={false}
-        onPress={() => toggleWatched(movie)}
+        onPress={() => requireAuth(() => toggleWatched(movie))}
       />
     </View>
   );
