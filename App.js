@@ -13,6 +13,7 @@ import DetailsPage from 'screens/DetailsPage';
 import ProfilePage from 'screens/ProfilePage';
 import Search from 'screens/Search';
 import { LibraryProvider } from 'context/LibraryContext';
+import { AuthProvider } from 'context/authContext';
 
 const tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -61,16 +62,18 @@ function TabNavigator() {
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <LibraryProvider>
-        <NavigationContainer
-          theme={{ ...DarkTheme, colors: { ...DarkTheme.colors, background: '#040304' } }}>
-          <StatusBar style="light" />
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="MainTabs" component={TabNavigator} />
-            <Stack.Screen name="movieDetail" component={DetailsPage} />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </LibraryProvider>
+      <AuthProvider>
+        <LibraryProvider>
+          <NavigationContainer
+            theme={{ ...DarkTheme, colors: { ...DarkTheme.colors, background: '#040304' } }}>
+            <StatusBar style="light" />
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="MainTabs" component={TabNavigator} />
+              <Stack.Screen name="movieDetail" component={DetailsPage} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </LibraryProvider>
+      </AuthProvider>
     </GestureHandlerRootView>
   );
 }
