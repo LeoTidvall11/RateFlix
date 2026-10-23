@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { View, Text, Pressable, ActivityIndicator, useWindowDimensions } from 'react-native';
-import { Bookmark, Heart, CircleCheck } from 'lucide-react-native';
+import { Bookmark, Heart, CircleCheck, LogIn } from 'lucide-react-native';
 import ScreenBackground from 'components/ScreenBackground';
 import { useLibrary } from 'context/LibraryContext';
 import PosterTile from 'components/cards/PosterTile';
 import colors from '../theme/colors';
+import { useAuth } from 'context/authContext';
 
 const TABS = [
   {
@@ -34,7 +35,7 @@ const TABS = [
 ];
 
 const COLUMNS = 3;
-const GAP = 12;
+const GAP = 10;
 const SIDE_PADDING = 16;
 
 function SegmentedControl({ activeKey, counts, onChange }) {
@@ -92,6 +93,8 @@ export default function Watchlist({ navigation }) {
   const [activeKey, setActiveKey] = useState('watchlist');
   const { width } = useWindowDimensions();
 
+  const { user } = useAuth();
+
   const tileWidth = (width - SIDE_PADDING * 2 - GAP * (COLUMNS - 1)) / COLUMNS;
   const activeTab = TABS.find((t) => t.key === activeKey);
   const items = library[activeKey];
@@ -99,6 +102,25 @@ export default function Watchlist({ navigation }) {
 
   const openMovie = (movieId) => navigation.navigate('movieDetail', { movieId });
 
+  if (!user) {
+    return (
+      <ScreenBackground>
+        <View className="flex-1 items-center justify-center px-6 text-center">
+          <LogIn size={48} color={'#F6F1EF'} className="mb-4" />
+          <Text className="mb-2 text-center text-xl font-bold text-text-primary">
+            Krävs att du loggar in
+          </Text>
+          <Text>Logga in för att se sparade filmer samt spara filmer du vill se</Text>
+
+          <Pressable
+            onPress={() => navigation.navigate('profile')}
+            className="w-full items-center rounded-2xl bg-blood-600 py-3 active:opacity-80">
+            <Text className="text-base font-bold text-white">Gå till inloggning</Text>
+          </Pressable>
+        </View>
+      </ScreenBackground>
+    );
+  }
   return (
     <ScreenBackground>
       <View style={{ paddingHorizontal: SIDE_PADDING }}>
