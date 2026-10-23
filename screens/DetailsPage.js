@@ -5,7 +5,7 @@
 // ScrollView. Så här inne får det INTE finnas en till vertikal ScrollView, då slutar
 // parallax-bakgrunden fungera.
 
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -17,13 +17,15 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { ChevronLeft, Star, Calendar, Clock } from 'lucide-react-native';
+import { ChevronLeft, Star, Calendar, Clock, Share2, ExternalLink } from 'lucide-react-native';
 import { useFetch } from 'hooks/useFetch';
 import { getMovieDetails, imageUrl } from 'services/externalApi';
 import ScreenBackground from 'components/ScreenBackground';
 import LibraryActions from 'components/buttons/LibraryActions';
 import { LiquidGlassView, isLiquidGlassSupported } from 'components/liquidGlass';
 import colors from 'theme/colors';
+import { useAuth } from 'context/authContext';
+import { Share, Linking } from 'react-native';
 
 // Glasyta med samma mönster som knapparna i Categories.
 // Liquid Glass finns bara på iOS 26+, så på äldre iOS och på Android används BlurView.
@@ -73,9 +75,28 @@ export default function MovieDetailScreen({ route, navigation }) {
   const { data: movie, loading, error } = useFetch(fetcher);
 
   const [userRating, setUserRating] = useState(0);
+  const { user } = useAuth();
 
   const releaseYear = movie?.release_date ? movie.release_date.split('-')[0] : '';
   const cast = movie?.credits?.cast?.slice(0, 12) ?? [];
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        title: movie.title,
+        message: `Spana in "${movie.title}" på rateFlix!`,
+      });
+    } catch (err) {
+      console.error('Fel vid delning:', err);
+    }
+  };
+
+  const handleOpenImdb = () => {
+    if (movie?.imdb_id) {
+      const url = `https://www.imdb.com/title/${movie.imdb_id}/`;
+      Linking.openURL(url).catch((err) => console.error('Kunde inte öppna länken', err));
+    }
+  };
 
   if (loading) {
     return (
@@ -179,7 +200,15 @@ export default function MovieDetailScreen({ route, navigation }) {
               {[1, 2, 3, 4, 5].map((star) => (
                 <Pressable
                   key={star}
-                  onPress={() => setUserRating(star === userRating ? 0 : star)}
+                  onPress={() => {
+                    if (!user) {
+                      navigation.navigate('MainTabs', { screen: 'profile' });
+                      return;
+                    }
+
+                    setUserRating(star === userRating ? 0 : star);
+                  }}
+
                   accessibilityRole="button"
                   // För VoiceOver/TalkBack, annars läses bara "knapp" upp
                   accessibilityLabel={`Betygsätt ${star} av 5`}
@@ -241,6 +270,26 @@ export default function MovieDetailScreen({ route, navigation }) {
           </ScrollView>
         </View>
       ) : null}
+
+      <GlassCard className="mx-6 mt-6">
+        <View className="flex-row items-center justify-between p-4">
+          <Pressable
+            onPress={handleShare}
+            className="flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-glass py-3 active:opacity-70">
+            <Share2 size={18} color={colors.text.primary} />
+            <Text className="text-sm font-semibold text-text-primary">Dela film</Text>
+          </Pressable>
+
+          <View className="mx-3 h-10 w-1 bg-glass-border" />
+
+          <Pressable
+            onPress={handleOpenImdb}
+            className="flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-glass py-3 active:opacity-70">
+            <ExternalLink size={18} color={colors.gold} />
+            <Text className="text-sm font-semibold text-gold">IMDB</Text>
+          </Pressable>
+        </View>
+      </GlassCard>
     </ScreenBackground>
   );
 }
