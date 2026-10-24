@@ -1,79 +1,20 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import './global.css';
-import { NavigationContainer, DarkTheme } from '@react-navigation/native';
-import { StatusBar } from 'expo-status-bar';
-import Homescreen from 'screens/HomeScreen';
-import Watchlist from 'screens/Watchlist';
-import { TabBar } from 'components/TabBar';
-
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Film, StarCheck, BookHeart, CircleUser, SearchIcon } from 'lucide-react-native';
-import DetailsPage from 'screens/DetailsPage';
-import ProfilePage from 'screens/ProfilePage';
-import Search from 'screens/Search';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LibraryProvider } from 'context/LibraryContext';
 import { AuthProvider } from 'context/authContext';
-
-const tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
-function TabNavigator() {
-  return (
-    <tab.Navigator
-      tabBar={(props) => <TabBar {...props} />}
-      screenOptions={{
-        headerShown: false,
-      }}>
-      <tab.Screen
-        name="home"
-        component={Homescreen}
-        options={{
-          tabBarIcon: ({ color, size }) => <Film size={size} color={color} />,
-        }}
-      />
-
-      <tab.Screen
-        name="watchlist"
-        component={Watchlist}
-        options={{
-          tabBarIcon: ({ color, size }) => <StarCheck size={size} color={color} />,
-        }}
-      />
-
-      <tab.Screen
-        name="search"
-        component={Search}
-        options={{
-          tabBarIcon: ({ color, size }) => <SearchIcon size={size} color={color} />,
-        }}
-      />
-
-      <tab.Screen
-        name="profile"
-        component={ProfilePage}
-        options={{
-          tabBarIcon: ({ color, size }) => <CircleUser size={size} color={color} />,
-        }}
-      />
-    </tab.Navigator>
-  );
-}
+import AppNavigator from 'navigation/AppNavigator';
 
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthProvider>
-        <LibraryProvider>
-          <NavigationContainer
-            theme={{ ...DarkTheme, colors: { ...DarkTheme.colors, background: '#040304' } }}>
-            <StatusBar style="light" />
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="MainTabs" component={TabNavigator} />
-              <Stack.Screen name="movieDetail" component={DetailsPage} />
-            </Stack.Navigator>
-          </NavigationContainer>
-        </LibraryProvider>
-      </AuthProvider>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <LibraryProvider>
+            <AppNavigator />
+          </LibraryProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
