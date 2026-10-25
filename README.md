@@ -35,12 +35,12 @@ Byggt med Spring Boot (Groovy), Spring Security med JWT och PostgreSQL. Anropen 
 ## Viktigaste funktioner
 
 - **Startsida** med en interaktiv "solfjäder" av veckans trendande filmer som hanterar svep och tryck och karuseller för populära, topprankade, kommande filmer och filmer som går på bio.
-- **Sök** efter filmer på titel. Resultaten laddas löpande när du scrollar, och utan sökord visas filmer per genre.
+- **Sök** efter filmer på titel. Resultaten laddas löpande när man scrollar, och utan sökord visas filmer per genre.
 - **Detaljvy** med handling, betyg från TMDB, år, längd, genrer och skådespelare.
 - **Mitt bibliotek** med tre flikar: _Vill se_, _Sett_ och _Favoriter_.
-- **Betyg** från 1 till 5 stjärnor. Trycker du på samma stjärna igen tas betyget bort.
-- **Kommentarer** skapa, redigera, ta bort på filmer du har markerat som sedda. Alla kommentarer samlas också på profilsidan.
-- **Återkoppling** med toast-meddelanden när du sparar uppdaterar, tar bort, loggar in och loggar ut. Laddningsindikatorer, felmeddelanden med "Försök igen" och tydliga tomma lägen finns i hela appen.
+- **Betyg** från 1 till 5 stjärnor. Trycker man på samma stjärna igen tas betyget bort.
+- **Kommentarer** skapa, redigera, ta bort på filmer man har markerat som sedda. Alla kommentarer samlas också på profilsidan.
+- **Återkoppling** med toast-meddelanden när man sparar uppdaterar, tar bort, loggar in och loggar ut. Laddningsindikatorer, felmeddelanden med "Försök igen" och tydliga tomma lägen finns i hela appen.
 - **Skyddade funktioner:** en utloggad användare kan bläddra, söka och se detaljer. Försöker man spara, betygsätta eller kommentera skickas man till inloggningen och sedan tillbaka till samma film.
 
 ---
@@ -77,7 +77,7 @@ Lösenord sparas aldrig lokalt. Biblioteket, betygen och kommentarerna sparas i 
 
 - **Share:** knappen _Dela film_ på detaljsidan öppnar telefonens delningsmeny.
 - **Linking:** knappen _IMDb_ öppnar filmens sida på IMDb i webbläsaren eller IMDb-appen.
-- **Haptics:** en kort vibration när du trycker på _Vill se_, _Favorit_ eller _Sett_.
+- **Haptics:** en kort vibration när man trycker på _Vill se_, _Favorit_ eller _Sett_.
 
 ---
 
