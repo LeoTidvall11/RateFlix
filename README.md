@@ -6,7 +6,7 @@ Appen är byggd med **React Native och Expo** och pratar med två REST API:er: e
 
 ---
 
-### Externt API: The Movie Database (TMDB)
+## Externt API: The Movie Database (TMDB)
 
 Används för all filmdata, alltså trendande, populära, topprankade och kommande filmer, filmer som går på bio, detaljer med skådespelare, sökning, genrer och affischer. Anropen finns i [`services/externalApi.js`].
 
@@ -144,3 +144,4 @@ npx expo start
 - **Har inte hunnit kommentera alla filer** Försökte vara noga med det i början men tiden sprang lite ifrån mig så fokuserade på annat istället.
 - **Ojämna namn** Jag har råkat blandat gemener och versaler samt råkat blanda engelska och svenska på vissa ställen.
 - **Categories knapp utan funktionalitet** Jag täntke haft flera categories-knappar ovanför solfjädern på hemskärmen. Tanken var att de skulle vara snabba sätt att komma till lite olika kategorier. Men det hanns inte med. Nu är det bara som en liten label för fjäderns kategori.
+- **Man kan markera en film som sedd och ändå kunna lägga till i vilja se**
