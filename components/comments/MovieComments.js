@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import { Pencil, Trash2 } from 'lucide-react-native';
 import GlassCard from 'components/GlassCard';
+import ErrorMessage from 'components/ErrorMessage';
 import CommentForm from 'components/comments/CommentForm';
 import { useAuth } from 'context/authContext';
 import { useLibrary, pickMovieFields } from 'context/LibraryContext';
 import { useToast } from 'context/ToastContext';
-import { getComments, addComment, updateComment, deleteComment } from 'services/api';
+import { addComment, updateComment, deleteComment } from 'services/api';
 import colors from 'theme/colors';
 
 function formatDate(isoString) {
@@ -49,33 +50,13 @@ function CommentItem({ comment, onEdit, onDelete }) {
   );
 }
 
-export default function MovieComments({ movie }) {
+export default function MovieComments({ movie, comments, setComments, loading, error, onRetry }) {
   const { user } = useAuth();
   const { getStatus } = useLibrary();
   const { showToast } = useToast();
   const { watched } = getStatus(movie.id);
 
-  const [comments, setComments] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
-
-  useEffect(() => {
-    if (!user?.id) return;
-
-    let cancelled = false;
-    getComments(movie.id)
-      .then((data) => {
-        if (!cancelled) setComments(data);
-      })
-      .catch((err) => console.error('Kunde inte hämta kommentarer:', err))
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [movie.id, user?.id]);
 
   if (!user) return null;
 
@@ -140,6 +121,12 @@ export default function MovieComments({ movie }) {
 
         {loading ? (
           <ActivityIndicator color={colors.blood[600]} />
+        ) : error ? (
+          <ErrorMessage message={error} onRetry={onRetry} />
+        ) : comments.length === 0 && watched ? (
+          <Text className="text-center text-sm text-text-muted">
+            Du har inte kommenterat filmen än.
+          </Text>
         ) : (
           comments.map((comment) =>
             comment.id === editingId ? (

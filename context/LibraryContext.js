@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useAuth } from 'context/authContext';
+import { useToast } from 'context/ToastContext';
 import { getLibrary, updateLibraryEntry } from 'services/api';
 
 const EMPTY_STATUS = { inWatchlist: false, isFavorite: false, watched: false };
@@ -56,6 +57,9 @@ export function LibraryProvider({ children }) {
   const userId = user?.id ?? null;
   const [loadedLibrary, setLibrary] = useState({});
   const [loadedUserId, setLoadedUserId] = useState(null);
+  const [error, setError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const { showToast } = useToast();
 
   // Hämta biblioteket från backend när användaren loggar in
   useEffect(() => {
@@ -66,19 +70,27 @@ export function LibraryProvider({ children }) {
       .then((data) => {
         if (cancelled) return;
         setLibrary(toLibraryMap(data));
+        setError(null);
         setLoadedUserId(userId);
       })
       .catch((error) => {
         console.error('Kunde inte ladda biblioteket:', error);
         if (cancelled) return;
         setLibrary({});
+        setError('Kunde inte hämta ditt bibliotek. Kontrollera din anslutning.');
         setLoadedUserId(userId);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, reloadKey]);
+
+  const reload = () => {
+    setError(null);
+    setLoadedUserId(null);
+    setReloadKey((key) => key + 1);
+  };
 
   const library = useMemo(
     () => (userId && loadedUserId === userId ? loadedLibrary : {}),
@@ -112,6 +124,7 @@ export function LibraryProvider({ children }) {
       .catch((error) => {
         console.error('Kunde inte spara i biblioteket:', error);
         setLibrary((prevLibrary) => withEntry(prevLibrary, movie.id, previousEntry));
+        showToast('Kunde inte spara ändringen', 'error');
       });
   };
 
@@ -165,6 +178,8 @@ export function LibraryProvider({ children }) {
     <LibraryContext.Provider
       value={{
         loading,
+        error: userId ? error : null,
+        reload,
         ...lists,
         toggleWatchlist,
         toggleFavorite,

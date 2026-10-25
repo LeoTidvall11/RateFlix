@@ -1,11 +1,12 @@
-// Detaljsidan för en film. Den får bara movieId via navigationen och hämtar resten
-// själv från TMDB (getMovieDetails tar med credits så skådespelarna kommer i samma anrop).
+// Detaljsidan för en film. Den får bara movieId via navigationen och hämtar resten själv:
+// filmdata från TMDB (getMovieDetails tar med credits så skådespelarna kommer i samma anrop)
+// och användarens kommentarer och betyg från vår backend.
 // Sidan är uppdelad i sektioner uppifrån och ner: hero-bild, poster + titel, chips,
 // knappar, handling och skådespelare. Allt ligger i ScreenBackground som redan är en
 // ScrollView. Så här inne får det INTE finnas en till vertikal ScrollView, då slutar
 // parallax-bakgrunden fungera.
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -13,21 +14,23 @@ import {
   ScrollView,
   ActivityIndicator,
   Pressable,
+  Share,
+  Linking,
   useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, Star, Calendar, Clock, Share2, ExternalLink } from 'lucide-react-native';
-import { useFetch } from 'hooks/useFetch';
 import { getMovieDetails, imageUrl } from 'services/externalApi';
 import ScreenBackground from 'components/ScreenBackground';
 import LibraryActions from 'components/buttons/LibraryActions';
 import GlassCard from 'components/GlassCard';
+import ErrorMessage from 'components/ErrorMessage';
 import MovieComments from 'components/comments/MovieComments';
 import colors from 'theme/colors';
 import { useAuth } from 'context/authContext';
+import { useToast } from 'context/ToastContext';
 import { pickMovieFields } from 'context/LibraryContext';
-import { getRating, setRating, deleteRating } from 'services/api';
-import { Share, Linking } from 'react-native';
+import { getRating, setRating, deleteRating, getComments } from 'services/api';
 
 function MovieInfo({
   icon: Icon,
@@ -49,30 +52,85 @@ export default function MovieDetailScreen({ route, navigation }) {
   const { movieId } = route.params;
   const { height } = useWindowDimensions();
 
-  const fetcher = useCallback(() => getMovieDetails(movieId), [movieId]);
-  const { data: movie, loading, error } = useFetch(fetcher);
+  const { user } = useAuth();
+  const { showToast } = useToast();
+
+  const [movie, setMovie] = useState(null);
+  const [movieError, setMovieError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const [comments, setComments] = useState([]);
+  const [commentsError, setCommentsError] = useState(null);
+  const [commentsLoading, setCommentsLoading] = useState(false);
 
   const [userRating, setUserRating] = useState(0);
-  const { user } = useAuth();
 
-  // Hämta användarens sparade betyg
+  // Filmen (TMDB), kommentarerna och betyget (vår backend) hämtas parallellt. allSettled
+  // väntar in alla tre även om något misslyckas, så varje del kan visa sitt eget fel
+  // i stället för att hela sidan kraschar. Utloggad användare hämtar bara filmen.
   useEffect(() => {
-    if (!user?.id) return;
-
     let cancelled = false;
-    getRating(movieId)
-      .then((rating) => {
-        if (!cancelled) setUserRating(rating.score);
-      })
-      .catch((err) => {
-        if (!cancelled) setUserRating(0);
-        if (err.status !== 404) console.error('Kunde inte hämta betyg:', err);
-      });
+    const loggedIn = Boolean(user?.id);
+
+    Promise.allSettled([
+      getMovieDetails(movieId),
+      loggedIn ? getComments(movieId) : Promise.resolve([]),
+      loggedIn ? getRating(movieId) : Promise.resolve(null),
+    ]).then(([movieResult, commentsResult, ratingResult]) => {
+      if (cancelled) return;
+
+      if (movieResult.status === 'fulfilled') {
+        setMovie(movieResult.value);
+        setMovieError(null);
+      } else {
+        console.error('Kunde inte hämta filmen:', movieResult.reason);
+        setMovieError('Det gick inte att ladda filmen. Kontrollera din anslutning.');
+      }
+
+      if (commentsResult.status === 'fulfilled') {
+        setComments(commentsResult.value);
+        setCommentsError(null);
+      } else {
+        console.error('Kunde inte hämta kommentarer:', commentsResult.reason);
+        setCommentsError('Kunde inte hämta kommentarerna.');
+      }
+
+      if (ratingResult.status === 'fulfilled') {
+        setUserRating(ratingResult.value?.score ?? 0);
+      } else {
+        setUserRating(0);
+        if (ratingResult.reason?.status !== 404) {
+          console.error('Kunde inte hämta betyg:', ratingResult.reason);
+        }
+      }
+
+      setLoading(false);
+    });
 
     return () => {
       cancelled = true;
     };
-  }, [movieId, user?.id]);
+  }, [movieId, user?.id, reloadKey]);
+
+  const retryMovie = () => {
+    setLoading(true);
+    setMovieError(null);
+    setReloadKey((key) => key + 1);
+  };
+
+  const retryComments = async () => {
+    setCommentsLoading(true);
+    setCommentsError(null);
+    try {
+      setComments(await getComments(movieId));
+    } catch (err) {
+      console.error('Kunde inte hämta kommentarer:', err);
+      setCommentsError('Kunde inte hämta kommentarerna.');
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
 
   // Utloggad användare ser inga ifyllda stjärnor
   const shownRating = user ? userRating : 0;
@@ -92,6 +150,10 @@ export default function MovieDetailScreen({ route, navigation }) {
     } catch (err) {
       console.error('Kunde inte spara betyg:', err);
       setUserRating(previousRating);
+      showToast(
+        newRating === 0 ? 'Kunde inte ta bort betyget' : 'Kunde inte spara betyget',
+        'error'
+      );
     }
   };
 
@@ -127,13 +189,20 @@ export default function MovieDetailScreen({ route, navigation }) {
     );
   }
 
-  if (error || !movie) {
+  if (movieError || !movie) {
     return (
       <ScreenBackground>
-        <View className="flex-1 items-center justify-center p-4">
-          <Text className="text-center text-text-primary">
-            Det gick inte att ladda filmen: {error}
-          </Text>
+        <View className="flex-1 justify-center p-4">
+          <ErrorMessage
+            message={movieError ?? 'Filmen kunde inte hittas.'}
+            onRetry={movieError ? retryMovie : undefined}
+          />
+          <Pressable
+            onPress={() => navigation.goBack()}
+            accessibilityRole="button"
+            className="items-center py-2">
+            <Text className="text-sm text-text-secondary">Tillbaka</Text>
+          </Pressable>
         </View>
       </ScreenBackground>
     );
@@ -221,7 +290,10 @@ export default function MovieDetailScreen({ route, navigation }) {
                   key={star}
                   onPress={() => {
                     if (!user) {
-                      navigation.navigate('MainTabs', { screen: 'profile' });
+                      navigation.navigate('MainTabs', {
+                        screen: 'profile',
+                        params: { redirectTo: { name: 'movieDetail', params: { movieId } } },
+                      });
                       return;
                     }
 
@@ -252,7 +324,14 @@ export default function MovieDetailScreen({ route, navigation }) {
         </View>
       </GlassCard>
 
-      <MovieComments movie={movie} />
+      <MovieComments
+        movie={movie}
+        comments={comments}
+        setComments={setComments}
+        loading={commentsLoading}
+        error={commentsError}
+        onRetry={retryComments}
+      />
 
       {cast.length ? (
         <View className="mt-8">
@@ -295,6 +374,7 @@ export default function MovieDetailScreen({ route, navigation }) {
         <View className="flex-row items-center justify-between p-4">
           <Pressable
             onPress={handleShare}
+            accessibilityRole="button"
             className="flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-glass py-3 active:opacity-70">
             <Share2 size={18} color={colors.text.primary} />
             <Text className="text-sm font-semibold text-text-primary">Dela film</Text>
@@ -304,6 +384,8 @@ export default function MovieDetailScreen({ route, navigation }) {
 
           <Pressable
             onPress={handleOpenImdb}
+            accessibilityRole="link"
+            accessibilityLabel="Öppna filmen på IMDb"
             className="flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-glass py-3 active:opacity-70">
             <ExternalLink size={18} color={colors.gold} />
             <Text className="text-sm font-semibold text-gold">IMDB</Text>
