@@ -1,5 +1,5 @@
 import { Text } from 'react-native';
-export default function () {
+export default function Title() {
   const title = 'RATEFLIX';
   return (
     <Text className="text-center text-4xl font-extrabold tracking-wide color-blood-600">

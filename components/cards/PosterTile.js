@@ -8,7 +8,12 @@ export default function PosterTile({ movie, width, onPress, showFavorite, showWa
   const year = movie.release_date?.split('-')[0];
 
   return (
-    <Pressable onPress={onPress} style={{ width }} className="active:opacity-80">
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={year ? `${movie.title}, ${year}` : movie.title}
+      style={{ width }}
+      className="active:opacity-80">
       <View
         style={{ width, height }}
         className="overflow-hidden rounded-xl bg-ink-600 shadow-lg shadow-blood-600">

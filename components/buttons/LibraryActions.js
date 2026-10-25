@@ -46,7 +46,10 @@ export default function LibraryActions({ movie }) {
 
   const requireAuth = (action) => {
     if (!user) {
-      navigation.navigate('MainTabs', { screen: 'profile' });
+      navigation.navigate('MainTabs', {
+        screen: 'profile',
+        params: { redirectTo: { name: 'movieDetail', params: { movieId: movie.id } } },
+      });
       return;
     }
     action();

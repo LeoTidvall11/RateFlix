@@ -199,7 +199,11 @@ export default function Search({ navigation }) {
             returnKeyType="search"
           />
           {query.length > 0 ? (
-            <Pressable onPress={() => setQuery('')} hitSlop={8}>
+            <Pressable
+              onPress={() => setQuery('')}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Rensa sökning">
               <X size={18} color={'#BDB1AE'} />
             </Pressable>
           ) : null}

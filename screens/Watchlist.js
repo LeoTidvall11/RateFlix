@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, Pressable, ActivityIndicator, useWindowDimensions } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Bookmark, Heart, CircleCheck, LogIn } from 'lucide-react-native';
 import ScreenBackground from 'components/ScreenBackground';
 import { useLibrary } from 'context/LibraryContext';
@@ -34,6 +35,8 @@ const TABS = [
     emptyText: 'Tryck på hjärtat på en film för att lägga till den bland dina favoriter.',
   },
 ];
+
+const ACTIVE_TAB_KEY = 'watchlist_active_tab';
 
 const COLUMNS = 3;
 const GAP = 10;
@@ -94,6 +97,21 @@ export default function Watchlist({ navigation }) {
   const [activeKey, setActiveKey] = useState('watchlist');
   const { width } = useWindowDimensions();
 
+  useEffect(() => {
+    AsyncStorage.getItem(ACTIVE_TAB_KEY)
+      .then((savedKey) => {
+        if (TABS.some((t) => t.key === savedKey)) setActiveKey(savedKey);
+      })
+      .catch((error) => console.error('Kunde inte läsa vald flik:', error));
+  }, []);
+
+  const changeTab = (key) => {
+    setActiveKey(key);
+    AsyncStorage.setItem(ACTIVE_TAB_KEY, key).catch((error) =>
+      console.error('Kunde inte spara vald flik:', error)
+    );
+  };
+
   const { user } = useAuth();
 
   const tileWidth = (width - SIDE_PADDING * 2 - GAP * (COLUMNS - 1)) / COLUMNS;
@@ -111,7 +129,6 @@ export default function Watchlist({ navigation }) {
           <Text className="mb-2 text-center text-xl font-bold text-text-primary">
             Krävs att du loggar in
           </Text>
-          <Text>Logga in för att se sparade filmer samt spara filmer du vill se</Text>
 
           <Pressable
             onPress={() =>
@@ -131,7 +148,7 @@ export default function Watchlist({ navigation }) {
       <View style={{ paddingHorizontal: SIDE_PADDING }}>
         <Text className="mb-4 text-3xl font-extrabold text-text-primary">Mitt bibliotek</Text>
 
-        <SegmentedControl activeKey={activeKey} counts={counts} onChange={setActiveKey} />
+        <SegmentedControl activeKey={activeKey} counts={counts} onChange={changeTab} />
 
         {library.loading ? (
           <ActivityIndicator className="mt-16" color={colors.blood[600]} size="large" />

@@ -12,7 +12,7 @@ export default function MovieCarousel({ title, movies, onPressMovie }) {
         horizontal
         data={limitedSelection}
         keyExtractor={(item) => item.id.toString()}
-        showHorizontalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 8 }}
         renderItem={({ item }) => <MovieCard item={item} onPress={onPressMovie} />}
       />

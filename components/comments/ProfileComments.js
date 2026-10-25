@@ -3,6 +3,7 @@ import { ActivityIndicator, Image, Pressable, Text, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { MessageSquare } from 'lucide-react-native';
 import GlassCard from 'components/GlassCard';
+import ErrorMessage from 'components/ErrorMessage';
 import { getMyComments } from 'services/api';
 import { imageUrl } from 'services/externalApi';
 import colors from 'theme/colors';
@@ -50,24 +51,36 @@ export default function ProfileComments() {
   const navigation = useNavigation();
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useFocusEffect(
-    useCallback(() => {
-      let cancelled = false;
-      getMyComments()
-        .then((data) => {
-          if (!cancelled) setComments(data);
-        })
-        .catch((err) => console.error('Kunde inte hämta kommentarer:', err))
-        .finally(() => {
-          if (!cancelled) setLoading(false);
-        });
+  const loadComments = useCallback(() => {
+    let cancelled = false;
+    getMyComments()
+      .then((data) => {
+        if (cancelled) return;
+        setComments(data);
+        setError(null);
+      })
+      .catch((err) => {
+        console.error('Kunde inte hämta kommentarer:', err);
+        if (!cancelled) setError('Kunde inte hämta dina kommentarer.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-      return () => {
-        cancelled = true;
-      };
-    }, [])
-  );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useFocusEffect(loadComments);
+
+  const retry = () => {
+    setLoading(true);
+    setError(null);
+    loadComments();
+  };
 
   return (
     <GlassCard className="mt-6">
@@ -81,6 +94,8 @@ export default function ProfileComments() {
 
         {loading ? (
           <ActivityIndicator color={colors.blood[600]} />
+        ) : error ? (
+          <ErrorMessage message={error} onRetry={retry} />
         ) : comments.length === 0 ? (
           <View className="items-center gap-2 py-4">
             <MessageSquare size={32} color={colors.text.secondary} />
