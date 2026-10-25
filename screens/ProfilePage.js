@@ -1,4 +1,5 @@
 import ScreenBackground from 'components/ScreenBackground';
+import ProfileComments from 'components/comments/ProfileComments';
 import { useState } from 'react';
 import { useAuth } from 'context/authContext';
 import { View, Text, Pressable, TextInput, ActivityIndicator } from 'react-native';
@@ -48,16 +49,20 @@ export default function ProfilePage() {
     <ScreenBackground>
       <View className="px-6 pt-8">
         {user ? (
-          <View className="items-center rounded-2xl border-glass-border bg-glass p-6">
-            <Text className="mb-2 text-2xl font-bold text-text-primary">{user.name}</Text>
-            <Text className="mb-6 text-sm text-text-secondary">{user.email}</Text>
+          <>
+            <View className="items-center rounded-2xl border-glass-border bg-glass p-6">
+              <Text className="mb-2 text-2xl font-bold text-text-primary">{user.name}</Text>
+              <Text className="mb-6 text-sm text-text-secondary">{user.email}</Text>
 
-            <Pressable
-              onPress={logout}
-              className="w-full items-center rounded-2xl bg-blood-600 py-3 active:opacity-80">
-              <Text className="fontBold text-base text-text-primary">Logga ut!</Text>
-            </Pressable>
-          </View>
+              <Pressable
+                onPress={logout}
+                className="w-full items-center rounded-2xl bg-blood-600 py-3 active:opacity-80">
+                <Text className="fontBold text-base text-text-primary">Logga ut!</Text>
+              </Pressable>
+            </View>
+
+            <ProfileComments />
+          </>
         ) : (
           <View className="rounded-2xl border border-glass-border bg-glass p-6">
             <Text className="mb-2 text-center text-2xl font-bold text-text-primary">

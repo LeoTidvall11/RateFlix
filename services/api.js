@@ -65,3 +65,12 @@ export const getRating = (tmdbId) => request(`/ratings/${tmdbId}`);
 export const setRating = (tmdbId, score, movie) =>
   request(`/ratings/${tmdbId}`, { method: 'PUT', body: { score, movie } });
 export const deleteRating = (tmdbId) => request(`/ratings/${tmdbId}`, { method: 'DELETE' });
+
+// Kommentarer hämtas alltid för den inloggade användaren, backend visar aldrig andras
+export const getComments = (tmdbId) => request(`/comments/movie/${tmdbId}`);
+export const getMyComments = () => request('/comments/me');
+export const addComment = (tmdbId, text, movie) =>
+  request(`/comments/movie/${tmdbId}`, { method: 'POST', body: { text, movie } });
+export const updateComment = (commentId, text) =>
+  request(`/comments/${commentId}`, { method: 'PUT', body: { text } });
+export const deleteComment = (commentId) => request(`/comments/${commentId}`, { method: 'DELETE' });

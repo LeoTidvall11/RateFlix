@@ -16,42 +16,18 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { ChevronLeft, Star, Calendar, Clock, Share2, ExternalLink } from 'lucide-react-native';
 import { useFetch } from 'hooks/useFetch';
 import { getMovieDetails, imageUrl } from 'services/externalApi';
 import ScreenBackground from 'components/ScreenBackground';
 import LibraryActions from 'components/buttons/LibraryActions';
-import { LiquidGlassView, isLiquidGlassSupported } from 'components/liquidGlass';
+import GlassCard from 'components/GlassCard';
+import MovieComments from 'components/comments/MovieComments';
 import colors from 'theme/colors';
 import { useAuth } from 'context/authContext';
 import { pickMovieFields } from 'context/LibraryContext';
 import { getRating, setRating, deleteRating } from 'services/api';
 import { Share, Linking } from 'react-native';
-
-// Glasyta med samma mönster som knapparna i Categories.
-// Liquid Glass finns bara på iOS 26+, så på äldre iOS och på Android används BlurView.
-// På Android blurrar BlurView inte som standard, där syns bara den halvgenomskinliga
-// färgen. Därför ligger bg-black/20 och bg-glass med så att kortet ser ok ut ändå.
-function GlassCard({ children, className = '' }) {
-  const containerStyle = `overflow-hidden rounded-2xl border border-glass-border ${className}`;
-
-  if (isLiquidGlassSupported) {
-    return (
-      <LiquidGlassView effect="clear" className={containerStyle}>
-        {children}
-      </LiquidGlassView>
-    );
-  }
-
-  return (
-    <View className={`${containerStyle} bg-black/20`}>
-      <BlurView intensity={40} tint="dark">
-        <View className="bg-glass">{children}</View>
-      </BlurView>
-    </View>
-  );
-}
 
 function MovieInfo({
   icon: Icon,
@@ -164,8 +140,9 @@ export default function MovieDetailScreen({ route, navigation }) {
   }
 
   return (
-    // paddingTop 0 tar bort ScreenBackgrounds safe-area-padding så att bilden går ända upp
-    <ScreenBackground contentContainerStyle={{ paddingTop: 0 }}>
+    // paddingTop 0 tar bort ScreenBackgrounds safe-area-padding så att bilden går ända upp.
+    // automaticallyAdjustKeyboardInsets (iOS) gör att kommentarsfältet inte hamnar bakom tangentbordet
+    <ScreenBackground contentContainerStyle={{ paddingTop: 0 }} automaticallyAdjustKeyboardInsets>
       {/* Hero, halva skärmhöjden så att det ser likadant ut på små och stora telefoner */}
       <View style={{ height: height * 0.5 }} className="w-full bg-ink-800">
         {movie.backdrop_path || movie.poster_path ? (
@@ -274,6 +251,8 @@ export default function MovieDetailScreen({ route, navigation }) {
           </Text>
         </View>
       </GlassCard>
+
+      <MovieComments movie={movie} />
 
       {cast.length ? (
         <View className="mt-8">
