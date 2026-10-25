@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useRef } from 'react';
-import { libraryStorage } from 'services/libraryStorage';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { useAuth } from 'context/authContext';
+import { getLibrary, updateLibraryEntry } from 'services/api';
 
 const EMPTY_STATUS = { inWatchlist: false, isFavorite: false, watched: false };
 
-// Sparar bara det vi behöver för att visa kort/statistik inte hela TMDB-svaret
-function pickMovieFields(movie) {
+// Skickar bara det vi behöver för att visa kort/statistik inte hela TMDB-svaret
+export function pickMovieFields(movie) {
   const fields = {
     id: movie.id,
     title: movie.title,
@@ -34,47 +35,84 @@ function getTimestamp() {
   return new Date().toISOString();
 }
 
+// Backend skickar tre listor här blir de ett objekt med TMDB-id som nyckel
+function toLibraryMap({ watchlist, favorites, watched }) {
+  const library = {};
+  [...watchlist, ...favorites, ...watched].forEach((entry) => {
+    library[entry.movie.id] = entry;
+  });
+  return library;
+}
+
+function withEntry(library, movieId, entry) {
+  const { [movieId]: _removed, ...remainingLibrary } = library;
+  return entry ? { ...remainingLibrary, [movieId]: entry } : remainingLibrary;
+}
+
 const LibraryContext = createContext(null);
 
 export function LibraryProvider({ children }) {
-  const [library, setLibrary] = useState({});
-  const [loading, setLoading] = useState(true);
-  const hasLoaded = useRef(false);
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
+  const [loadedLibrary, setLibrary] = useState({});
+  const [loadedUserId, setLoadedUserId] = useState(null);
 
-  // Läs in sparat bibliotek vid start
+  // Hämta biblioteket från backend när användaren loggar in
   useEffect(() => {
-    libraryStorage.load().then((savedLibrary) => {
-      setLibrary(savedLibrary);
-      setLoading(false);
-      hasLoaded.current = true;
-    });
-  }, []);
+    if (!userId) return;
 
-  // Spara varje gång biblioteket ändras (men inte innan det har laddats)
-  useEffect(() => {
-    if (hasLoaded.current) libraryStorage.save(library);
-  }, [library]);
+    let cancelled = false;
+    getLibrary()
+      .then((data) => {
+        if (cancelled) return;
+        setLibrary(toLibraryMap(data));
+        setLoadedUserId(userId);
+      })
+      .catch((error) => {
+        console.error('Kunde inte ladda biblioteket:', error);
+        if (cancelled) return;
+        setLibrary({});
+        setLoadedUserId(userId);
+      });
 
-  // Uppdaterar en films post. getChanges får den nuvarande posten och
-  // returnerar de fält som ska ändras.
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  const library = useMemo(
+    () => (userId && loadedUserId === userId ? loadedLibrary : {}),
+    [userId, loadedUserId, loadedLibrary]
+  );
+  const loading = userId !== null && loadedUserId !== userId;
+
+  // Uppdaterar en films post direkt i appen och skickar sedan ändringen till backend.
+  // getChanges får den nuvarande posten och returnerar de fält som ska ändras.
+  // Går anropet fel återställs posten.
   const updateEntry = (movie, getChanges) => {
-    setLibrary((prevLibrary) => {
-      const currentEntry = prevLibrary[movie.id] ?? { movie: {}, ...EMPTY_STATUS };
+    const previousEntry = library[movie.id];
+    const currentEntry = previousEntry ?? { movie: {}, ...EMPTY_STATUS };
+    const changes = getChanges(currentEntry);
 
-      const updatedEntry = {
-        ...currentEntry,
-        ...getChanges(currentEntry),
-        movie: { ...currentEntry.movie, ...pickMovieFields(movie) },
-      };
+    const updatedEntry = {
+      ...currentEntry,
+      ...changes,
+      movie: { ...currentEntry.movie, ...pickMovieFields(movie) },
+    };
 
-      // Ingen flagga kvar: ta bort filmen helt från biblioteket
-      if (!hasAnyStatus(updatedEntry)) {
-        const { [movie.id]: _removed, ...remainingLibrary } = prevLibrary;
-        return remainingLibrary;
-      }
+    setLibrary((prevLibrary) =>
+      withEntry(prevLibrary, movie.id, hasAnyStatus(updatedEntry) ? updatedEntry : null)
+    );
 
-      return { ...prevLibrary, [movie.id]: updatedEntry };
-    });
+    const { watchlistAt, favoriteAt, watchedAt, ...flags } = changes;
+    updateLibraryEntry(movie.id, { movie: updatedEntry.movie, ...flags })
+      .then((savedEntry) =>
+        setLibrary((prevLibrary) => withEntry(prevLibrary, movie.id, savedEntry))
+      )
+      .catch((error) => {
+        console.error('Kunde inte spara i biblioteket:', error);
+        setLibrary((prevLibrary) => withEntry(prevLibrary, movie.id, previousEntry));
+      });
   };
 
   const toggleWatchlist = (movie) =>
@@ -89,7 +127,6 @@ export function LibraryProvider({ children }) {
       favoriteAt: entry.isFavorite ? null : getTimestamp(),
     }));
 
-  // Markeras en film som sedd försvinner den från watchlisten
   const toggleWatched = (movie) =>
     updateEntry(movie, (entry) => {
       if (entry.watched) {

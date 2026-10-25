@@ -5,7 +5,7 @@
 // ScrollView. Så här inne får det INTE finnas en till vertikal ScrollView, då slutar
 // parallax-bakgrunden fungera.
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,8 @@ import LibraryActions from 'components/buttons/LibraryActions';
 import { LiquidGlassView, isLiquidGlassSupported } from 'components/liquidGlass';
 import colors from 'theme/colors';
 import { useAuth } from 'context/authContext';
+import { pickMovieFields } from 'context/LibraryContext';
+import { getRating, setRating, deleteRating } from 'services/api';
 import { Share, Linking } from 'react-native';
 
 // Glasyta med samma mönster som knapparna i Categories.
@@ -76,6 +78,46 @@ export default function MovieDetailScreen({ route, navigation }) {
 
   const [userRating, setUserRating] = useState(0);
   const { user } = useAuth();
+
+  // Hämta användarens sparade betyg
+  useEffect(() => {
+    if (!user?.id) return;
+
+    let cancelled = false;
+    getRating(movieId)
+      .then((rating) => {
+        if (!cancelled) setUserRating(rating.score);
+      })
+      .catch((err) => {
+        if (!cancelled) setUserRating(0);
+        if (err.status !== 404) console.error('Kunde inte hämta betyg:', err);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [movieId, user?.id]);
+
+  // Utloggad användare ser inga ifyllda stjärnor
+  const shownRating = user ? userRating : 0;
+
+  // Samma stjärna igen tar bort betyget. Visas direkt och återställs om sparandet misslyckas.
+  const handleRate = async (star) => {
+    const previousRating = userRating;
+    const newRating = star === userRating ? 0 : star;
+    setUserRating(newRating);
+
+    try {
+      if (newRating === 0) {
+        await deleteRating(movie.id);
+      } else {
+        await setRating(movie.id, newRating, pickMovieFields(movie));
+      }
+    } catch (err) {
+      console.error('Kunde inte spara betyg:', err);
+      setUserRating(previousRating);
+    }
+  };
 
   const releaseYear = movie?.release_date ? movie.release_date.split('-')[0] : '';
   const cast = movie?.credits?.cast?.slice(0, 12) ?? [];
@@ -206,17 +248,16 @@ export default function MovieDetailScreen({ route, navigation }) {
                       return;
                     }
 
-                    setUserRating(star === userRating ? 0 : star);
+                    handleRate(star);
                   }}
-
                   accessibilityRole="button"
                   // För VoiceOver/TalkBack, annars läses bara "knapp" upp
                   accessibilityLabel={`Betygsätt ${star} av 5`}
                   hitSlop={4}>
                   <Star
                     size={26}
-                    color={star <= userRating ? colors.gold : colors.text.muted}
-                    fill={star <= userRating ? colors.gold : 'none'}
+                    color={star <= shownRating ? colors.gold : colors.text.muted}
+                    fill={star <= shownRating ? colors.gold : 'none'}
                   />
                 </Pressable>
               ))}

@@ -1,7 +1,22 @@
 import ScreenBackground from 'components/ScreenBackground';
 import { useState } from 'react';
 import { useAuth } from 'context/authContext';
-import { View, Text, Pressable, TextInput } from 'react-native';
+import { View, Text, Pressable, TextInput, ActivityIndicator } from 'react-native';
+
+function getErrorMessage(error) {
+  switch (error.status) {
+    case 400:
+      return error.errors?.password
+        ? 'Lösenordet måste vara minst 8 tecken'
+        : 'Kontrollera att alla fält är rätt ifyllda';
+    case 401:
+      return 'Fel e-post eller lösenord';
+    case 409:
+      return 'Det finns redan ett konto med den e-postadressen';
+    default:
+      return 'Kunde inte nå servern, försök igen';
+  }
+}
 
 export default function ProfilePage() {
   const { user, login, register, logout } = useAuth();
@@ -10,12 +25,23 @@ export default function ProfilePage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = () => {
-    if (isRegistering) {
-      register(name, email, password);
-    } else {
-      login(email, password);
+  const handleSubmit = async () => {
+    setError(null);
+    setSubmitting(true);
+    try {
+      if (isRegistering) {
+        await register(name, email, password);
+      } else {
+        await login(email, password);
+      }
+      setPassword('');
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setSubmitting(false);
     }
   };
   return (
@@ -86,16 +112,28 @@ export default function ProfilePage() {
               />
             </View>
 
+            {error ? (
+              <Text className="mb-4 text-center text-sm text-blood-300">{error}</Text>
+            ) : null}
+
             <Pressable
               onPress={handleSubmit}
+              disabled={submitting}
               className="mb-4 w-full items-center rounded-2xl bg-blood-600 py-3.5 active:opacity-80">
-              <Text className="text-base font-bold text-white">
-                {isRegistering ? 'Skapa konto' : 'Logga in'}
-              </Text>
+              {submitting ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-base font-bold text-white">
+                  {isRegistering ? 'Skapa konto' : 'Logga in'}
+                </Text>
+              )}
             </Pressable>
 
             <Pressable
-              onPress={() => setIsRegistering(!isRegistering)}
+              onPress={() => {
+                setIsRegistering(!isRegistering);
+                setError(null);
+              }}
               className="items-center py-2">
               <Text className="text-sm text-text-secondary">
                 {isRegistering ? 'Har du redan ett konto? ' : 'Har du inget konto? '}

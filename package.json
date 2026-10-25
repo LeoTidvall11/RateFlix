@@ -20,6 +20,7 @@
     "expo": "~57.0.31",
     "expo-blur": "^57.0.3",
     "expo-build-properties": "~57.0.22",
+    "expo-constants": "~57.0.22",
     "expo-haptics": "~57.0.3",
     "expo-linear-gradient": "~57.0.2",
     "expo-secure-store": "~57.0.4",
