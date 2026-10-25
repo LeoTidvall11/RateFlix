@@ -6,8 +6,8 @@
   "packages": [
     {
       "name": "nativewind",
-      "type": "styling"
-    }
+      "type": "styling",
+    },
   ],
   "flags": {
     "noGit": false,
@@ -16,16 +16,16 @@
     "importAlias": true,
     "packageManager": "npm",
     "eas": false,
-    "publish": false
+    "publish": false,
   },
   "packageManager": {
     "type": "npm",
-    "version": "11.17.0"
+    "version": "11.17.0",
   },
   "os": {
     "type": "Windows_NT",
     "platform": "win32",
     "arch": "x64",
-    "kernelVersion": "10.0.26300"
-  }
+    "kernelVersion": "10.0.26300",
+  },
 }

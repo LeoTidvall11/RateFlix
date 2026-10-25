@@ -4,6 +4,7 @@ import { Bookmark, Heart, CircleCheck, LogIn } from 'lucide-react-native';
 import ScreenBackground from 'components/ScreenBackground';
 import { useLibrary } from 'context/LibraryContext';
 import PosterTile from 'components/cards/PosterTile';
+import ErrorMessage from 'components/ErrorMessage';
 import colors from '../theme/colors';
 import { useAuth } from 'context/authContext';
 
@@ -113,7 +114,11 @@ export default function Watchlist({ navigation }) {
           <Text>Logga in för att se sparade filmer samt spara filmer du vill se</Text>
 
           <Pressable
-            onPress={() => navigation.navigate('profile')}
+            onPress={() =>
+              navigation.navigate('profile', {
+                redirectTo: { name: 'MainTabs', params: { screen: 'watchlist' } },
+              })
+            }
             className="w-full items-center rounded-2xl bg-blood-600 py-3 active:opacity-80">
             <Text className="text-base font-bold text-white">Gå till inloggning</Text>
           </Pressable>
@@ -130,6 +135,8 @@ export default function Watchlist({ navigation }) {
 
         {library.loading ? (
           <ActivityIndicator className="mt-16" color={colors.blood[600]} size="large" />
+        ) : library.error ? (
+          <ErrorMessage message={library.error} onRetry={library.reload} className="mt-16" />
         ) : items.length === 0 ? (
           <EmptyState tab={activeTab} onExplore={() => navigation.navigate('search')} />
         ) : (
