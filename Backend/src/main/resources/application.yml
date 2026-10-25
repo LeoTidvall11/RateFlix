@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: rateflix
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/rateflix}
+    username: ${DB_USER:rateflix}
+    password: ${DB_PASSWORD:rateflix}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  docker:
+    compose:
+      lifecycle-management: start-only
+
+server:
+  port: 8080
+
+rateflix:
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:8081}
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-change-me-dev-secret-change-me}
+    expiration: 7d

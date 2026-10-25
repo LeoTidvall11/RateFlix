@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: 'postgres:17'
+    environment:
+      - 'POSTGRES_DB=rateflix'
+      - 'POSTGRES_USER=rateflix'
+      - 'POSTGRES_PASSWORD=rateflix'
+    ports:
+      - '5432:5432'
+    volumes:
+      - 'rateflix-data:/var/lib/postgresql/data'
+
+volumes:
+  rateflix-data:
